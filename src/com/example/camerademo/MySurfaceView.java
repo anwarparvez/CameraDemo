@@ -1,6 +1,7 @@
 package com.example.camerademo;
 
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.Buffer;
 
@@ -8,8 +9,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.ImageFormat;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -31,9 +34,9 @@ public class MySurfaceView extends SurfaceView implements Callback,
 
     public MySurfaceView(Context context, AttributeSet attrs) {
     super(context, attrs);
-        rectanglePaint.setARGB(100, 200, 0, 0);
-        rectanglePaint.setStyle(Paint.Style.FILL);
-        rectanglePaint.setStrokeWidth(2);
+       // rectanglePaint.setARGB(100, 200, 0, 0);
+        //rectanglePaint.setStyle(Paint.Style.FILL);
+        //rectanglePaint.setStrokeWidth(2);
 
         mHolder = getHolder();
         mHolder.addCallback(this);
@@ -42,9 +45,9 @@ public class MySurfaceView extends SurfaceView implements Callback,
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.drawRect(new Rect((int) Math.random() * 100,
+/*        canvas.drawRect(new Rect((int) Math.random() * 100,
             (int) Math.random() * 100, 200, 200), rectanglePaint);
-        Log.w(this.getClass().getName(), "On Draw Called");
+        Log.w(this.getClass().getName(), "On Draw Called");*/
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
@@ -60,6 +63,7 @@ public class MySurfaceView extends SurfaceView implements Callback,
 
             Camera.Parameters p = mCamera.getParameters();
             p.setPreviewSize(240, 160);
+           // p.setPreviewFormat(ImageFormat.RGB_565);
             mCamera.setParameters(p);
 
 
@@ -113,9 +117,19 @@ public class MySurfaceView extends SurfaceView implements Callback,
                 for(int i = 0; i < rgbints.length; i++){
                     rgbints[i] = (int)rgbbuffer[i];
                 }
+                YuvImage image= new YuvImage(data,ImageFormat.NV21, 240, 160, null);
+                Rect rect=new Rect(0, 0, 239, 159);
+                ByteArrayOutputStream arrayOutputStream=new ByteArrayOutputStream();
+                
+                image.compressToJpeg(rect,100,arrayOutputStream );
+                
+               Bitmap bitmap= BitmapFactory.decodeByteArray(arrayOutputStream.toByteArray(), 0,arrayOutputStream.size());
 
+               
                 //decodeYUV(rgbbuffer, data, 100, 100);
-                c.drawBitmap(rgbints, 0, 256, 0, 0, 256, 256, false, new Paint());
+               // c.drawBitmap(rgbints, 0, 256, 0, 0, 256, 256, false, new Paint());
+               
+               c.drawBitmap(bitmap, rect, rect, new Paint());
 
                 Log.d("SOMETHING", "Got Bitmap");
 
